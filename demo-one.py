@@ -32,13 +32,49 @@ class device_handler(debounce_handler):
                 "colored lights":52001,
                 "wizard light":52002,
                 "desk lamp":52003,
-                "tentacle light:":52004,
+                "tentacle light":52004,
                 "air filter":52005,
                 "pong one":52010}
 
     def act(self, client_address, state):
         print "State", state, "from client @", client_address
         return True
+
+class fargo_relay_0(debounce_handler):
+    """Publishes the on/off state requested,
+       and the IP address of the Echo making the request.
+    """
+    TRIGGERS = {"white lights": 52000}
+
+    def act(self, client_address, state):
+        print "White Lights", state, "from client @", client_address
+        return True
+
+
+class fargo_relay_1(debounce_handler):
+    """Publishes the on/off state requested,
+       and the IP address of the Echo making the request.
+    """
+    TRIGGERS = {"colored lights": 52010}
+
+    def act(self, client_address, state):
+        print "Colored Lights", state, "from client @", client_address
+        return True
+
+class fargo_relay_2(debounce_handler):
+    """Publishes the on/off state requested,
+       and the IP address of the Echo making the request.
+    """
+    TRIGGERS = {"wizard light": 52020}
+
+    def act(self, client_address, state):
+        print "Wizard Light", state, "from client @", client_address
+        return True
+
+def initializeHandler(handler) {
+    for trig, port in handler.TRIGGERS.items():
+        fauxmo.fauxmo(trig, u, p, None, port, handler)
+}
 
 if __name__ == "__main__":
     # Startup the fauxmo server
@@ -49,9 +85,10 @@ if __name__ == "__main__":
     p.add(u)
 
     # Register the device callback as a fauxmo handler
-    d = device_handler()
-    for trig, port in d.TRIGGERS.items():
-        fauxmo.fauxmo(trig, u, p, None, port, d)
+    initializeHandler(fargo_relay_0)
+    initializeHandler(fargo_relay_1)
+    initializeHandler(fargo_relay_2)
+    
 
     # Loop and poll for incoming Echo requests
     logging.debug("Entering fauxmo polling loop")
