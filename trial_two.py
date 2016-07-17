@@ -26,11 +26,14 @@ logging.basicConfig(level=logging.DEBUG)
 
 fargourl="http://192.168.2.14/api/relay/"
 
-triggers=[
-            {"colored lights": 52000},
-            {"white lights": 52010},
-            {"wizard light": 52020}
-]
+triggers={"fargo":[
+            {"trig":{"colored lights": 52000},"relay":0},
+            {"trig":{"white lights": 52010},"relay":1},
+            {"trig":{"wizard light": 52020},"relay":2},
+            {"trig":{"tentacle lamp": 52030},"relay":3},
+            {"trig":{"desk lamp": 52040},"relay":4},
+            {"trig":{"air filter": 52050},"relay":5}
+]}
 
 def setFargoRelay(relay, state):
     if (state):
@@ -62,10 +65,8 @@ if __name__ == "__main__":
     p.add(u)
 
     # Register the device callback as a fauxmo handler
-    fargo_handler().initialize(triggers[0],0,u,p)
-    fargo_handler().initialize(triggers[1],1,u,p)
-    fargo_handler().initialize(triggers[2],2,u,p)
-    
+    for triglist in triggers["fargo"]:
+        fargo_handler().initialize(triglist.trig,triglist.relay,u,p)
 
     # Loop and poll for incoming Echo requests
     logging.debug("Entering fauxmo polling loop")
