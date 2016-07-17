@@ -51,6 +51,7 @@ class fargo_handler(debounce_handler):
             urllib2.urlopen(fargourl+str(self.relaynumber+1)+"/on").read()
         else:
             urllib2.urlopen(fargourl+str(self.relaynumber+1)+"/off").read()
+        return True
 
 if __name__ == "__main__":
     # Startup the fauxmo server
