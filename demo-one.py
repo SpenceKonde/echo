@@ -71,9 +71,9 @@ class fargo_relay_2(debounce_handler):
         print "Wizard Light", state, "from client @", client_address
         return True
 
-def initializeHandler(handler):
+def initializeHandler(responder,poller,handler):
     for trig, port in handler.TRIGGERS.items():
-        fauxmo.fauxmo(trig, u, p, None, port, handler)
+        fauxmo.fauxmo(trig, responder, poller, None, port, handler)
 
 if __name__ == "__main__":
     # Startup the fauxmo server
@@ -84,9 +84,9 @@ if __name__ == "__main__":
     p.add(u)
 
     # Register the device callback as a fauxmo handler
-    initializeHandler(fargo_relay_0)
-    initializeHandler(fargo_relay_1)
-    initializeHandler(fargo_relay_2)
+    initializeHandler(u,p,fargo_relay_0())
+    initializeHandler(u,p,fargo_relay_1())
+    initializeHandler(u,p,fargo_relay_2())
     
 
     # Loop and poll for incoming Echo requests
