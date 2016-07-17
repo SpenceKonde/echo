@@ -15,40 +15,37 @@
 import fauxmo
 import logging
 import time
-#import urllib2
+import urllib2
 
 from debounce_handler import debounce_handler
 
 logging.basicConfig(level=logging.DEBUG)
 
-#def 
 
+#urllib2.urlopen()
 
-class device_handler(debounce_handler):
-    """Publishes the on/off state requested,
-       and the IP address of the Echo making the request.
-    """
-    TRIGGERS = {"white lights": 52000,
-                "colored lights":52001,
-                "wizard light":52002,
-                "desk lamp":52003,
-                "tentacle light":52004,
-                "air filter":52005,
-                "pong one":52010}
+fargourl="http://192.168.2.14/api/relay/"
 
-    def act(self, client_address, state):
-        print "State", state, "from client @", client_address
-        return True
+def setFargoRelay(relay, state):
+    if (state):
+        urllib2.urlopen(fargourl+(relay+1)+"/on").read()
+    else:
+        urllib2.urlopen(fargourl+(relay+1)+"/off").read()
+
 
 class fargo_relay_0(debounce_handler):
     """Publishes the on/off state requested,
        and the IP address of the Echo making the request.
     """
     TRIGGERS = {"white lights": 52000}
+    
+    
 
     def act(self, client_address, state):
         print "White Lights", state, "from client @", client_address
+        setFargoRelay(0,state)
         return True
+
 
 
 class fargo_relay_1(debounce_handler):
@@ -59,6 +56,7 @@ class fargo_relay_1(debounce_handler):
 
     def act(self, client_address, state):
         print "Colored Lights", state, "from client @", client_address
+        setFargoRelay(1,state)
         return True
 
 class fargo_relay_2(debounce_handler):
@@ -69,6 +67,7 @@ class fargo_relay_2(debounce_handler):
 
     def act(self, client_address, state):
         print "Wizard Light", state, "from client @", client_address
+        setFargoRelay(2,state)
         return True
 
 def initializeHandler(responder,poller,handler):
