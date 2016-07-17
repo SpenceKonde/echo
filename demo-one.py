@@ -71,10 +71,9 @@ class fargo_relay_2(debounce_handler):
         print "Wizard Light", state, "from client @", client_address
         return True
 
-def initializeHandler(handler) {
+def initializeHandler(handler):
     for trig, port in handler.TRIGGERS.items():
         fauxmo.fauxmo(trig, u, p, None, port, handler)
-}
 
 if __name__ == "__main__":
     # Startup the fauxmo server
