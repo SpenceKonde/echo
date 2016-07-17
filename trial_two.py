@@ -40,7 +40,7 @@ def setFargoRelay(relay, state):
 
 
 class fargo_handler(debounce_handler):   
-    def initialize(triggers,relaynumber,responder,poller):
+    def initialize(self,triggers,relaynumber,responder,poller):
         self.relaynumber=relaynumber
         for trig, port in triggers.items():
             fauxmo.fauxmo(trig, responder, poller, None, port, self)
