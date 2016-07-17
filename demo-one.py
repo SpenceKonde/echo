@@ -28,9 +28,9 @@ fargourl="http://192.168.2.14/api/relay/"
 
 def setFargoRelay(relay, state):
     if (state):
-        urllib2.urlopen(fargourl+(relay+1)+"/on").read()
+        urllib2.urlopen(fargourl+str(relay+1)+"/on").read()
     else:
-        urllib2.urlopen(fargourl+(relay+1)+"/off").read()
+        urllib2.urlopen(fargourl+str(relay+1)+"/off").read()
 
 
 class fargo_relay_0(debounce_handler):
