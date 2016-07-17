@@ -35,11 +35,6 @@ triggers={"fargo":[
             {"trig":{"air filter": 52050},"relay":5}
 ]}
 
-def setFargoRelay(relay, state):
-    if (state):
-        urllib2.urlopen(fargourl+str(relay+1)+"/on").read()
-    else:
-        urllib2.urlopen(fargourl+str(relay+1)+"/off").read()
 
 
 class fargo_handler(debounce_handler):   
@@ -66,7 +61,7 @@ if __name__ == "__main__":
 
     # Register the device callback as a fauxmo handler
     for triglist in triggers["fargo"]:
-        fargo_handler().initialize(triglist.trig,triglist.relay,u,p)
+        fargo_handler().initialize(triglist[trig],triglist[relay],u,p)
 
     # Loop and poll for incoming Echo requests
     logging.debug("Entering fauxmo polling loop")
