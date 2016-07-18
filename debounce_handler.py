@@ -21,7 +21,6 @@ class debounce_handler(object):
 
     def act(self, client_address, state):
         pass
-
     def debounce(self):
         """If multiple Echos are present, the one most likely to respond first
            is the one that can best hear the speaker... which is the closest one.
@@ -34,4 +33,41 @@ class debounce_handler(object):
         self.lastEcho = time.time()
         return False
 
+class debounce_handler_hue(object):
+    """Use this handler to keep multiple Amazon Echo devices from reacting to
+       the same voice command.
+    """
+    DEBOUNCE_SECONDS = 0.3
+
+    def __init__(self):
+        self.lastEcho = time.time()
+
+    def on(self, bulb, client_address):
+        if self.debounce():
+            return True
+        return self.act(client_address, bulb, True)
+
+    def off(self, bulb, client_address):
+        if self.debounce():
+            return True
+        return self.act(client_address, bulb, False)
+
+    def act(self, bulb, client_address,state):
+        pass
+    def dim(self,bulb,client_address,value):
+        if self.debounce():
+            return True
+        return self.act(client_address,bulb,value
+        
+    def debounce(self):
+        """If multiple Echos are present, the one most likely to respond first
+           is the one that can best hear the speaker... which is the closest one.
+           Adding a refractory period to handlers keeps us from worrying about
+           one Echo overhearing a command meant for another one.
+        """
+        if (time.time() - self.lastEcho) < self.DEBOUNCE_SECONDS:
+            return True
+
+        self.lastEcho = time.time()
+        return False
 
