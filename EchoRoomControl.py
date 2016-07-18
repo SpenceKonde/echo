@@ -33,7 +33,7 @@ triggers={"fargo":[
     }
 
 class generic_handler(debounce_handler):
-    def initialize(self,triggers,on,off,responder,poller)
+    def initialize(self,triggers,on,off,responder,poller):
         self.onurl=on
         self.offurl=off
         for trig, port in triggers.items():
