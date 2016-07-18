@@ -65,6 +65,7 @@ class fargo_handler(debounce_handler):
     def act(self,client_address,state):
         print "Fargo Handler "+str(self.relaynumber),state,"from client@", client_address
         if (state):
+            print fargourl+str(self.relaynumber+1)+"/on"
             resp=urllib2.urlopen(fargourl+str(self.relaynumber+1)+"/on")
             code=resp.getcode()
             resp.read()
