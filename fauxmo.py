@@ -224,7 +224,7 @@ class fauxmo(upnp_device):
                        "%s" % (len(xml), date_str, xml))
             socket.send(message)
         elif data.find('SOAPACTION: "urn:Belkin:service:basicevent:1#SetBinaryState"') != -1:
-            dbg(data)
+            //dbg(data)
             success = False
             if data.find('<BinaryState>1</BinaryState>') != -1:
                 # on

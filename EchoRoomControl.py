@@ -1,7 +1,7 @@
 """ EchoRoomControl.py 
     This is the room control script used to controll the lighting and other systems 
     at my appartment. The devices controlled are a Fargo R8 relay unit and192.1 several 
-    pingpong light systems (  ) running on ESP8266's 
+    pingpong light systems ( https://github.com/SpenceKonde/AzzyProjects/tree/master/Animate ) running on ESP8266's 
 
 """
 
@@ -29,7 +29,7 @@ triggers={"fargo":[
         ],"generic":[
             {"trig":{"pong one":52100},"on":"http://192.168.2.135/load.cmd?index=22","off":"http://192.168.2.135/load.cmd?index=0"},
             {"trig":{"pong two":52110},"on":"http://192.168.2.138/setScene.cmd?scene=1","off":"http://192.168.2.138/setScene.cmd?scene=0"},
-            {"trig":{"nixie clock":52150},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
+            {"trig":{"clock":52150},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
         ]
     }
 
