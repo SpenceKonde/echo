@@ -134,6 +134,7 @@ class upnp_device(object):
         self.poller.add(self)
         self.client_sockets = {}
         self.listener.add_device(self)
+        self.lastsearch=0
 
     def fileno(self):
         return self.socket.fileno()
@@ -158,25 +159,28 @@ class upnp_device(object):
         return "unknown"
 
     def respond_to_search(self, destination, search_target):
-        dbg("Responding to search for %s" % self.get_name())
-        date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
-        location_url = self.root_url % {'ip_address' : self.ip_address, 'port' : self.port}
-        message = ("HTTP/1.1 200 OK\r\n"
-                  "CACHE-CONTROL: max-age=86400\r\n"
-                  "DATE: %s\r\n"
-                  "EXT:\r\n"
-                  "LOCATION: %s\r\n"
-                  "OPT: \"http://schemas.upnp.org/upnp/1/0/\"; ns=01\r\n"
-                  "01-NLS: %s\r\n"
-                  "SERVER: %s\r\n"
-                  "ST: %s\r\n"
-                  "USN: uuid:%s::%s\r\n" % (date_str, location_url, self.uuid, self.server_version, search_target, self.persistent_uuid, search_target))
-        if self.other_headers:
-            for header in self.other_headers:
-                message += "%s\r\n" % header
-        message += "\r\n"
-        temp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        temp_socket.sendto(message, destination)
+        if (time.time()-self.lastsearch < 60):
+            dbg("not responding to search for %s" % self.get_name())
+        else:
+            dbg("Responding to search for %s" % self.get_name())
+            date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+            location_url = self.root_url % {'ip_address' : self.ip_address, 'port' : self.port}
+            message = ("HTTP/1.1 200 OK\r\n"
+                      "CACHE-CONTROL: max-age=86400\r\n"
+                      "DATE: %s\r\n"
+                      "EXT:\r\n"
+                      "LOCATION: %s\r\n"
+                      "OPT: \"http://schemas.upnp.org/upnp/1/0/\"; ns=01\r\n"
+                      "01-NLS: %s\r\n"
+                      "SERVER: %s\r\n"
+                      "ST: %s\r\n"
+                      "USN: uuid:%s::%s\r\n" % (date_str, location_url, self.uuid, self.server_version, search_target, self.persistent_uuid, search_target))
+            if self.other_headers:
+                for header in self.other_headers:
+                    message += "%s\r\n" % header
+            message += "\r\n"
+            temp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            temp_socket.sendto(message, destination)
 
 
 # This subclass does the bulk of the work to mimic a WeMo switch on the network.
