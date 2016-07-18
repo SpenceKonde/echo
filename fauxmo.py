@@ -162,6 +162,7 @@ class upnp_device(object):
         if (time.time()-self.lastsearch < 60):
             dbg("not responding to search for %s" % self.get_name())
         else:
+            self.lastsearch=time.time() 
             dbg("Responding to search for %s" % self.get_name())
             date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
             location_url = self.root_url % {'ip_address' : self.ip_address, 'port' : self.port}
