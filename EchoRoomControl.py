@@ -27,8 +27,8 @@ triggers={"fargo":[
             {"trig":{"desk lamp": 52040},"relay":4},
             {"trig":{"air filter": 52050},"relay":5}
         ],"generic":[
-            {"trig":{"pong one":52100},"on":"http://192.168.2.138/load.cmd?22","off":"http://192.168.2.138/load.cmd?0"},
-            {"trig":{"pong two":52100},"on":"http://192.168.2.138/setScene.cmd?scene=1","off":"http://192.168.2.138/setScene.cmd?scene=1"}
+            {"trig":{"pong one":52100},"on":"http://192.168.2.135/load.cmd?22","off":"http://192.168.2.135/load.cmd?0"},
+            {"trig":{"pong two":52110},"on":"http://192.168.2.138/setScene.cmd?scene=1","off":"http://192.168.2.138/setScene.cmd?scene=1"}
         ]
     }
 
