@@ -29,7 +29,7 @@ triggers={"fargo":[
         ],"generic":[
             {"trig":{"pong one":52100},"on":"http://192.168.2.135/load.cmd?index=22","off":"http://192.168.2.135/load.cmd?index=0"},
             {"trig":{"pong two":52110},"on":"http://192.168.2.138/setScene.cmd?scene=1","off":"http://192.168.2.138/setScene.cmd?scene=0"},
-            {"trig":{"nixie clock":52200},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
+            {"trig":{"nixie clock":52150},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
         ]
     }
 
