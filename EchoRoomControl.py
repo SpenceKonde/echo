@@ -28,7 +28,8 @@ triggers={"fargo":[
             {"trig":{"air filter": 52050},"relay":5}
         ],"generic":[
             {"trig":{"pong one":52100},"on":"http://192.168.2.135/load.cmd?index=22","off":"http://192.168.2.135/load.cmd?index=0"},
-            {"trig":{"pong two":52110},"on":"http://192.168.2.138/setScene.cmd?scene=1","off":"http://192.168.2.138/setScene.cmd?scene=1"}
+            {"trig":{"pong two":52110},"on":"http://192.168.2.138/setScene.cmd?scene=1","off":"http://192.168.2.138/setScene.cmd?scene=0"},
+            {"trig":{"nixie clock":52200},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
         ]
     }
 
@@ -65,7 +66,6 @@ class fargo_handler(debounce_handler):
     def act(self,client_address,state):
         print "Fargo Handler "+str(self.relaynumber),state,"from client@", client_address
         if (state):
-            print fargourl+str(self.relaynumber+1)+"/on"
             resp=urllib2.urlopen(fargourl+str(self.relaynumber+1)+"/on")
             code=resp.getcode()
             resp.read()
