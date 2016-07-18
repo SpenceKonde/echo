@@ -11,6 +11,7 @@ import time
 import urllib2
 
 from debounce_handler import debounce_handler
+from debounce_handler import debounce_handler_hue
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -32,6 +33,11 @@ triggers={"fargo":[
             {"trig":{"clock":52150},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
         ]
     }
+
+class hue_handler(debounce_handler_hue):
+    def act(self,bulb,client_address,state):
+        print "hue handler for bulb ",bulb," from client ",client_address," set to ",state
+        return True
 
 class generic_handler(debounce_handler):
     def initialize(self,triggers,on,off,responder,poller):
