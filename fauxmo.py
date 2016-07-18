@@ -159,9 +159,9 @@ class upnp_device(object):
         return "unknown"
 
     def respond_to_search(self, destination, search_target):
-        if (time.time()-self.lastsearch < 60):
-            dbg("not responding to search for %s" % self.get_name())
-        else:
+        #if (time.time()-self.lastsearch < 60):
+        #    dbg("not responding to search for %s" % self.get_name())
+        #else:
             self.lastsearch=time.time() 
             dbg("Responding to search for %s" % self.get_name())
             date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
