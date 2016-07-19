@@ -331,11 +331,11 @@ class fauxhue(upnp_device):
                     dbg ("Set %s to %s\n" % (setting, value))
                     if setting == "on":
                         if value == True:
-                            self.action_handler.on(private,client_address[0]))
+                            self.action_handler.on(private,client_address[0])
                         elif value == False:
-                            self.action_handler.off(private,client_address[0]))
+                            self.action_handler.off(private,client_address[0])
                     elif setting == "bri":
-                        self.action_handler.dim(private,client_address[0]),value)
+                        self.action_handler.dim(private,client_address[0],value)
                     apistring = "/lights/%s/state/%s" % (light, setting)
                     responses.append({"success":{apistring : command[setting]}})
                 self.send(socket, json.dumps(responses))

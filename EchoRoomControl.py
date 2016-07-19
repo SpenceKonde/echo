@@ -55,7 +55,7 @@ class generic_handler(debounce_handler):
             resp.read()
         else:
             resp=urllib2.urlopen(self.offurl)
-            code=resp.getcode()
+            code=resp.getcode() 
             resp.read()
         if (code==200):
             return True
