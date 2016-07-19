@@ -298,7 +298,7 @@ class fauxhue(upnp_device):
                    "CONNECTION: close\r\n"
                    "\r\n"
                    "%s" % (len(data), date_str, data))
-        dbg(message)
+        #dbg(message)
         socket.send(message)
 
     def handle_request(self, data, sender, socket, client_address):
