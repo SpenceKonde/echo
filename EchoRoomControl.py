@@ -44,6 +44,7 @@ class hue_handler(debounce_handler_hue):
 class pong_handler(debounce_handler_hue):
     def initialize(self,triggers,ip,responder,poller):
         self.destip=ip
+        self.add_bulb(name, "pong one")
         for trig, port in triggers.items():
             fauxmo.fauxhue(trig,u,p,None,port,self)
     def act(self,bulb,client_address,state):
