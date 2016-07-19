@@ -41,7 +41,6 @@ def toscenenum(value):
 
 
 class hue_handler(debounce_handler_hue):
-
     def act(self,bulb,client_address,state):
         print "hue handler for bulb ",bulb," from client ",client_address," set to ",state
 
