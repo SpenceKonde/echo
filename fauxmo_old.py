@@ -25,9 +25,9 @@ THE SOFTWARE.
 """
 
 # For a complete discussion, see http://www.makermusings.com
+# TODO(semartin): investigate time.sleep usage in here...
 
 import email.utils
-import json
 import requests
 import select
 import socket
@@ -36,8 +36,7 @@ import sys
 import time
 import urllib
 import uuid
-
-
+import logging
 
 # This XML is the minimum needed to define one of our virtual switches
 # to the Amazon Echo
@@ -55,44 +54,9 @@ SETUP_XML = """<?xml version="1.0"?>
 </root>
 """
 
-HUE_SETUP_XML = """<?xml version="1.0" encoding="UTF-8" ?>
-<root xmlns="urn:schemas-upnp-org:device-1-0">
-	<specVersion>
-		<major>1</major>
-		<minor>0</minor>
-	</specVersion>
-	<URLBase>%(host)%(port)/</URLBase>
-	<device>
-		<deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>
-		<friendlyName>Philips hue (##URLBASE##)</friendlyName>
-		<manufacturer>Royal Philips Electronics</manufacturer>
-		<manufacturerURL>http://www.philips.com</manufacturerURL>
-		<modelDescription>Philips hue Personal Wireless Lighting</modelDescription>
-		<modelName>Philips hue bridge 2012</modelName>
-		<modelNumber>929000226503</modelNumber>
-		<modelURL>http://www.meethue.com</modelURL>
-		<serialNumber>0017880ae670</serialNumber>
-		<UDN>uuid:2f402f80-da50-11e1-9b23-0017880ae670</UDN>
-		<serviceList>
-			<service>
-				<serviceType>(null)</serviceType>
-				<serviceId>(null)</serviceId>
-				<controlURL>(null)</controlURL>
-				<eventSubURL>(null)</eventSubURL>
-				<SCPDURL>(null)</SCPDURL>
-			</service>
-		</serviceList>
-		<presentationURL>index.html</presentationURL>
-	</device>
-</root>"""
-
-DEBUG = False
 
 def dbg(msg):
-    global DEBUG
-    if DEBUG:
-        print msg
-        sys.stdout.flush()
+    logging.debug(msg)
 
 
 # A simple utility class to wait for incoming data to be
@@ -100,40 +64,30 @@ def dbg(msg):
 
 class poller:
     def __init__(self):
-        if 'poll' in dir(select):
-            self.use_poll = True
-            self.poller = select.poll()
-        else:
-            self.use_poll = False
+        self.poller = select.poll()
         self.targets = {}
 
     def add(self, target, fileno = None):
         if not fileno:
             fileno = target.fileno()
-        if self.use_poll:
-            self.poller.register(fileno, select.POLLIN)
+        self.poller.register(fileno, select.POLLIN)
         self.targets[fileno] = target
 
     def remove(self, target, fileno = None):
         if not fileno:
             fileno = target.fileno()
-        if self.use_poll:
-            self.poller.unregister(fileno)
+        self.poller.unregister(fileno)
         del(self.targets[fileno])
 
     def poll(self, timeout = 0):
-        if self.use_poll:
-            ready = self.poller.poll(timeout)
-        else:
-            ready = []
-            if len(self.targets) > 0:
-                (rlist, wlist, xlist) = select.select(self.targets.keys(), [], [], timeout)
-                ready = [(x, None) for x in rlist]
+        ready = self.poller.poll(timeout)
+        num = len(ready)
         for one_ready in ready:
             target = self.targets.get(one_ready[0], None)
             if target:
                 target.do_read(one_ready[0])
- 
+        return num
+
 
 # Base class for a generic UPnP device. This is far from complete
 # but it supports either specified or automatic IP address and port
@@ -154,16 +108,15 @@ class upnp_device(object):
             del(temp_socket)
             dbg("got local address of %s" % upnp_device.this_host_ip)
         return upnp_device.this_host_ip
-        
 
-    def __init__(self, listener, poller, port, root_url, server_version, persistent_uuid, protocol, other_headers = None, ip_address = None):
+
+    def __init__(self, listener, poller, port, root_url, server_version, persistent_uuid, other_headers = None, ip_address = None):
         self.listener = listener
         self.poller = poller
         self.port = port
         self.root_url = root_url
         self.server_version = server_version
         self.persistent_uuid = persistent_uuid
-        self.protocol = protocol
         self.uuid = uuid.uuid4()
         self.other_headers = other_headers
 
@@ -173,6 +126,7 @@ class upnp_device(object):
             self.ip_address = upnp_device.local_ip_address()
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind((self.ip_address, self.port))
         self.socket.listen(5)
         if self.port == 0:
@@ -180,6 +134,7 @@ class upnp_device(object):
         self.poller.add(self)
         self.client_sockets = {}
         self.listener.add_device(self)
+        self.lastsearch=0
 
     def fileno(self):
         return self.socket.fileno()
@@ -188,165 +143,45 @@ class upnp_device(object):
         if fileno == self.socket.fileno():
             (client_socket, client_address) = self.socket.accept()
             self.poller.add(self, client_socket.fileno())
-            self.client_sockets[client_socket.fileno()] = client_socket
+            self.client_sockets[client_socket.fileno()] = (client_socket, client_address)
         else:
-            data, sender = self.client_sockets[fileno].recvfrom(4096)
+            data, sender = self.client_sockets[fileno][0].recvfrom(4096)
             if not data:
                 self.poller.remove(self, fileno)
                 del(self.client_sockets[fileno])
             else:
-                self.handle_request(data, sender, self.client_sockets[fileno])
+                self.handle_request(data, sender, self.client_sockets[fileno][0], self.client_sockets[fileno][1])
 
-    def handle_request(self, data, sender, socket):
+    def handle_request(self, data, sender, socket, client_address):
         pass
 
     def get_name(self):
         return "unknown"
-        
-    def get_protocol(self):
-        return self.protocol
 
     def respond_to_search(self, destination, search_target):
-        dbg("Responding to search for %s" % self.get_name())
-        date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
-        location_url = self.root_url % {'ip_address' : self.ip_address, 'port' : self.port}
-        message = ("HTTP/1.1 200 OK\r\n"
-                  "CACHE-CONTROL: max-age=86400\r\n"
-                  "DATE: %s\r\n"
-                  "EXT:\r\n"
-                  "LOCATION: %s\r\n"
-                  "OPT: \"http://schemas.upnp.org/upnp/1/0/\"; ns=01\r\n"
-                  "01-NLS: %s\r\n"
-                  "SERVER: %s\r\n"
-                  "ST: %s\r\n"
-                  "USN: uuid:%s::%s\r\n" % (date_str, location_url, self.uuid, self.server_version, search_target, self.persistent_uuid, search_target))
-        if self.other_headers:
-            for header in self.other_headers:
-                message += "%s\r\n" % header
-        message += "\r\n"
-        temp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        temp_socket.sendto(message, destination)
-
-
-# This subclass implements Philips Hue compatibility
-
-class fauxhue(upnp_device):
-    @staticmethod
-    def make_uuid(name):
-        return ''.join(["%x" % sum([ord(c) for c in name])] + ["%x" % ord(c) for c in "%sfauxhue!" % name])[:14]
-
-    def __init__(self, name, listener, poller, ip_address, port, action_handler = None):
-        self.lights = {}
-        self.privates = {}
-        self.ip_address = ip_address
-        self.serial = self.make_uuid(name)
-        self.name = name
-        persistent_uuid = "Socket-1_0-" + self.serial
-        other_headers = ['X-User-Agent: redsonic']
-        upnp_device.__init__(self, listener, poller, port, "http://%(ip_address)s:%(port)s/description.xml", "Unspecified, UPnP/1.0, Unspecified", persistent_uuid, "hue", other_headers=other_headers, ip_address=ip_address)
-        if action_handler:
-            self.action_handler = action_handler
-        else:
-            self.action_handler = self
-        dbg("FauxHue device '%s' ready on %s:%s" % (self.name, self.ip_address, self.port))
-
-    def add_bulb (self, name, state=False, brightness=0, private=None):
-        light = {
-            "state": {
-		"on": state,
-		"bri": brightness,
-		"hue": 0,
-		"sat": 0,
-		"xy": [0.0000, 0.0000],
-		"ct": 0,
-		"alert": "none",
-		"effect": "none",
-		"colormode": "hs",
-		"reachable": True
-	    },
-	    "type": "Extended color light",
-	    "name": name,
-	    "modelid": "LCT001",
-	    "swversion": "65003148",
-	    "pointsymbol": {
-		"1": "none",
-		"2": "none",
-		"3": "none",
-		"4": "none",
-		"5": "none",
-		"6": "none",
-		"7": "none",
-                "8": "none"
-	    }
-        }
-        lightnum = len(self.lights) + 1
-        self.lights[str(lightnum)] = light
-        self.privates[str(lightnum)] = private
-
-    def get_name(self):
-        return self.name
-
-    def send(self, socket, data):
-        date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
-        message = ("HTTP/1.1 200 OK\r\n"
-                   "CONTENT-LENGTH: %d\r\n"
-                   "CONTENT-TYPE: text/xml\r\n"
-                   "DATE: %s\r\n"
-                   "LAST-MODIFIED: Sat, 01 Jan 2000 00:01:15 GMT\r\n"
-                   "SERVER: Unspecified, UPnP/1.0, Unspecified\r\n"
-                   "X-User-Agent: redsonic\r\n"
-                   "CONNECTION: close\r\n"
-                   "\r\n"
-                   "%s" % (len(data), date_str, data))
-        dbg(message)
-        socket.send(message)
-
-    def handle_request(self, data, sender, socket):
-        tokens = data.split()
-        if len(tokens) < 3 or tokens[2] != 'HTTP/1.1':
-            dbg("Unknown request %s\n" % data)
-            return
-        requestdata = tokens[1].split('/')
-        if tokens[0] == 'GET':
-            if requestdata[1] == 'description.xml':
-                dbg("Responding to description.xml for %s" % self.name)
-                xml = HUE_SETUP_XML % {'host' : self.ip_address, 'port' : self.port}
-                self.send(socket, xml)
-            elif len(requestdata) == 4 and requestdata[3] == 'lights':
-                data = json.dumps(self.lights)
-                self.send(socket, data)
-            elif len(requestdata) >= 5 and requestdata[3] == 'lights':
-                data = json.dumps(self.lights[requestdata[4]])
-                self.send(socket, data)
-        elif tokens[0] == 'PUT':
-            if len(requestdata) >= 5 and requestdata[3] == 'lights':
-                light = requestdata[4]
-                submission = data.split('\n')[6]
-                command = json.loads(submission)
-                responses = []
-                for setting in command.keys():
-                    value = command[setting]
-                    private = self.privates[light]
-                    self.lights[light]['state'][setting] = value
-                    dbg ("Set %s to %s\n" % (setting, value))
-                    if setting == "on":
-                        if value == True:
-                            self.action_handler.on(private,client_address[0]))
-                        elif value == False:
-                            self.action_handler.off(private,client_address[0]))
-                    elif setting == "bri":
-                        self.action_handler.dim(private,client_address[0]),value)
-                    apistring = "/lights/%s/state/%s" % (light, setting)
-                    responses.append({"success":{apistring : command[setting]}})
-                self.send(socket, json.dumps(responses))
-        else:
-            dbg("Unknown request: %s" % data)
-
-    def on(self):
-        return False
-
-    def off(self):
-        return True
+        #if (time.time()-self.lastsearch < 60):
+        #    dbg("not responding to search for %s" % self.get_name())
+        #else:
+            self.lastsearch=time.time() 
+            dbg("Responding to search for %s" % self.get_name())
+            date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+            location_url = self.root_url % {'ip_address' : self.ip_address, 'port' : self.port}
+            message = ("HTTP/1.1 200 OK\r\n"
+                      "CACHE-CONTROL: max-age=86400\r\n"
+                      "DATE: %s\r\n"
+                      "EXT:\r\n"
+                      "LOCATION: %s\r\n"
+                      "OPT: \"http://schemas.upnp.org/upnp/1/0/\"; ns=01\r\n"
+                      "01-NLS: %s\r\n"
+                      "SERVER: %s\r\n"
+                      "ST: %s\r\n"
+                      "USN: uuid:%s::%s\r\n" % (date_str, location_url, self.uuid, self.server_version, search_target, self.persistent_uuid, search_target))
+            if self.other_headers:
+                for header in self.other_headers:
+                    message += "%s\r\n" % header
+            message += "\r\n"
+            temp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            temp_socket.sendto(message, destination)
 
 
 # This subclass does the bulk of the work to mimic a WeMo switch on the network.
@@ -362,7 +197,7 @@ class fauxmo(upnp_device):
         self.ip_address = ip_address
         persistent_uuid = "Socket-1_0-" + self.serial
         other_headers = ['X-User-Agent: redsonic']
-        upnp_device.__init__(self, listener, poller, port, "http://%(ip_address)s:%(port)s/setup.xml", "Unspecified, UPnP/1.0, Unspecified", persistent_uuid, "wemo", other_headers=other_headers, ip_address=ip_address)
+        upnp_device.__init__(self, listener, poller, port, "http://%(ip_address)s:%(port)s/setup.xml", "Unspecified, UPnP/1.0, Unspecified", persistent_uuid, other_headers=other_headers, ip_address=ip_address)
         if action_handler:
             self.action_handler = action_handler
         else:
@@ -372,7 +207,7 @@ class fauxmo(upnp_device):
     def get_name(self):
         return self.name
 
-    def handle_request(self, data, sender, socket):
+    def handle_request(self, data, sender, socket, client_address):
         if data.find('GET /setup.xml HTTP/1.1') == 0:
             dbg("Responding to setup.xml for %s" % self.name)
             xml = SETUP_XML % {'device_name' : self.name, 'device_serial' : self.serial}
@@ -389,15 +224,16 @@ class fauxmo(upnp_device):
                        "%s" % (len(xml), date_str, xml))
             socket.send(message)
         elif data.find('SOAPACTION: "urn:Belkin:service:basicevent:1#SetBinaryState"') != -1:
+            #dbg(data)
             success = False
             if data.find('<BinaryState>1</BinaryState>') != -1:
                 # on
                 dbg("Responding to ON for %s" % self.name)
-                success = self.action_handler.on(client_address[0]))
+                success = self.action_handler.on(client_address[0])
             elif data.find('<BinaryState>0</BinaryState>') != -1:
                 # off
                 dbg("Responding to OFF for %s" % self.name)
-                success = self.action_handler.off(client_address[0]))
+                success = self.action_handler.off(client_address[0])
             else:
                 dbg("Unknown Binary State request:")
                 dbg(data)
@@ -420,10 +256,10 @@ class fauxmo(upnp_device):
         else:
             dbg(data)
 
-    def on(self, private):
+    def on(self):
         return False
 
-    def off(self, private):
+    def off(self):
         return True
 
 
@@ -480,14 +316,8 @@ class upnp_broadcast_responder(object):
         if data:
             if data.find('M-SEARCH') == 0 and data.find('urn:Belkin:device:**') != -1:
                 for device in self.devices:
-                    if device.get_protocol() == "wemo":
-                        time.sleep(0.1)
-                        device.respond_to_search(sender, 'urn:Belkin:device:**')
-            elif data.find('M-SEARCH') == 0 and data.find('urn:schemas-upnp-org:device:basic:1') != -1:
-                for device in self.devices:
-                    if device.get_protocol() == "hue":
-                        time.sleep(0.1)
-                        device.respond_to_search(sender, 'urn:schemas-upnp-org:device:basic:1')
+                    time.sleep(0.5)
+                    device.respond_to_search(sender, 'urn:Belkin:device:**')
             else:
                 pass
 
@@ -514,5 +344,70 @@ class upnp_broadcast_responder(object):
         dbg("UPnP broadcast listener: new device registered")
 
 
+# This is an example handler class. The fauxmo class expects handlers to be
+# instances of objects that have on() and off() methods that return True
+# on success and False otherwise.
+#
+# This example class takes two full URLs that should be requested when an on
+# and off command are invoked respectively. It ignores any return data.
+
+class dummy_handler(object):
+    def __init__(self, name):
+        self.name = name
+
+    def on(self):
+        print self.name, "ON"
+        return True
+
+    def off(self):
+        print self.name, "OFF"
+        return True
 
 
+class rest_api_handler(object):
+    def __init__(self, on_cmd, off_cmd):
+        self.on_cmd = on_cmd
+        self.off_cmd = off_cmd
+
+    def on(self):
+        r = requests.get(self.on_cmd)
+        return r.status_code == 200
+
+    def off(self):
+        r = requests.get(self.off_cmd)
+        return r.status_code == 200
+
+if __name__ == "__main__":
+    FAUXMOS = [
+        ['office lights', dummy_handler("officelight")],
+        ['kitchen lights', dummy_handler("kitchenlight")],
+    ]
+
+    if len(sys.argv) > 1 and sys.argv[1] == '-d':
+        DEBUG = True
+
+    # Set up our singleton for polling the sockets for data ready
+    p = poller()
+
+    # Set up our singleton listener for UPnP broadcasts
+    u = upnp_broadcast_responder()
+    u.init_socket()
+
+    # Add the UPnP broadcast listener to the poller so we can respond
+    # when a broadcast is received.
+    p.add(u)
+
+    # Create our FauxMo virtual switch devices
+    for one_faux in FAUXMOS:
+        switch = fauxmo(one_faux[0], u, p, None, 0, action_handler = one_faux[1])
+
+    dbg("Entering main loop\n")
+
+    while True:
+        try:
+            # Allow time for a ctrl-c to stop the process
+            p.poll(100)
+            time.sleep(0.1)
+        except Exception, e:
+            dbg(e)
+            break
