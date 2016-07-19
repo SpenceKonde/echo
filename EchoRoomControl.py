@@ -100,7 +100,7 @@ if __name__ == "__main__":
         generic_handler().initialize(triglist["trig"],triglist["on"],triglist["off"],u,p)
     testhandler=hue_handler()
     testfauxhue=fauxmo.fauxhue("device",u,p,None,51999,testhandler)
-    testfauxhue.add_bulb("test")
+    testfauxhue.add_bulb("barge")
     # Loop and poll for incoming Echo requests
     logging.debug("Entering fauxmo polling loop")
     while True:
