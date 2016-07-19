@@ -67,7 +67,7 @@ class pong_handler(debounce_handler_hue):
         else:
             val=values[state]
             dbg(values)
-            resp=urllib2.urlopen("http://"self.destip+"/setScene.cmd?scene="+str(val))
+            resp=urllib2.urlopen("http://"+self.destip+"/setScene.cmd?scene="+str(val))
 class generic_handler(debounce_handler):
     def initialize(self,triggers,on,off,responder,poller):
         self.onurl=on
