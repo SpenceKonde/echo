@@ -48,7 +48,7 @@ class pong_handler(debounce_handler_hue):
             fauxmo.fauxhue(trig,u,p,None,port,self)
     def act(self,bulb,client_address,state):
         print "hue handler for bulb ",bulb," from client ",client_address," set to ",state
-        if (state===True):
+        if (state is True):
             resp=urllib2.urlopen("http://"+self.destip+"/on.cmd")
             code=resp.getcode()
             resp.read()
@@ -56,7 +56,7 @@ class pong_handler(debounce_handler_hue):
                 return True
             else:
                 return False
-        elif (state===False):
+        elif (state is False):
             resp=urllib2.urlopen("http://"+self.destip+"/off.cmd")
             code=resp.getcode()
             resp.read()
