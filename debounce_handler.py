@@ -45,19 +45,19 @@ class debounce_handler_hue(object):
     def on(self, bulb, client_address):
         if self.debounce():
             return True
-        return self.act(client_address, bulb, True)
+        return self.act(bulb,client_address, True)
 
     def off(self, bulb, client_address):
         if self.debounce():
             return True
-        return self.act(client_address, bulb, False)
+        return self.act(bulb,client_address, False)
 
     def act(self, bulb, client_address,state):
         pass
     def dim(self,bulb,client_address,value):
         if self.debounce():
             return True
-        return self.act(client_address,bulb,value)
+        return self.act(bulb,client_address,value)
     def debounce(self):
         """If multiple Echos are present, the one most likely to respond first
            is the one that can best hear the speaker... which is the closest one.

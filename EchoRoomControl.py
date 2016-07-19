@@ -35,6 +35,7 @@ triggers={"fargo":[
     }
 
 class hue_handler(debounce_handler_hue):
+
     def act(self,bulb,client_address,state):
         print "hue handler for bulb ",bulb," from client ",client_address," set to ",state
         return True
@@ -97,7 +98,9 @@ if __name__ == "__main__":
         fargo_handler().initialize(triglist["trig"],triglist["relay"],u,p)
     for triglist in triggers["generic"]:
         generic_handler().initialize(triglist["trig"],triglist["on"],triglist["off"],u,p)
-
+    testhandler=hue_handler()
+    testfauxhue=fauxmo.fauxhue("device",u,p,None,51999,testhandler)
+    testfauxhue.add_bulb("test")
     # Loop and poll for incoming Echo requests
     logging.debug("Entering fauxmo polling loop")
     while True:

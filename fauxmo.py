@@ -232,6 +232,122 @@ class upnp_device(object):
 
 # This subclass does the bulk of the work to mimic a WeMo switch on the network.
 
+class fauxhue(upnp_device):
+    @staticmethod
+    def make_uuid(name):
+        return ''.join(["%x" % sum([ord(c) for c in name])] + ["%x" % ord(c) for c in "%sfauxhue!" % name])[:14]
+
+    def __init__(self, name, listener, poller, ip_address, port, action_handler = None):
+        self.lights = {}
+        self.privates = {}
+        self.ip_address = ip_address
+        self.serial = self.make_uuid(name)
+        self.name = name
+        persistent_uuid = "Socket-1_0-" + self.serial
+        other_headers = ['X-User-Agent: redsonic']
+        upnp_device.__init__(self, listener, poller, port, "http://%(ip_address)s:%(port)s/description.xml", "Unspecified, UPnP/1.0, Unspecified", persistent_uuid, "hue", other_headers=other_headers, ip_address=ip_address)
+        if action_handler:
+            self.action_handler = action_handler
+        else:
+            self.action_handler = self
+        dbg("FauxHue device '%s' ready on %s:%s" % (self.name, self.ip_address, self.port))
+
+    def add_bulb (self, name, state=False, brightness=0, private=None):
+        light = {
+            "state": {
+        "on": state,
+        "bri": brightness,
+        "hue": 0,
+        "sat": 0,
+        "xy": [0.0000, 0.0000],
+        "ct": 0,
+        "alert": "none",
+        "effect": "none",
+        "colormode": "hs",
+        "reachable": True
+        },
+        "type": "Extended color light",
+        "name": name,
+        "modelid": "LCT001",
+        "swversion": "65003148",
+        "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+                "8": "none"
+        }
+        }
+        lightnum = len(self.lights) + 1
+        self.lights[str(lightnum)] = light
+        self.privates[str(lightnum)] = private
+    def get_name(self):
+        return self.name
+    def send(self, socket, data):
+        date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+        message = ("HTTP/1.1 200 OK\r\n"
+                   "CONTENT-LENGTH: %d\r\n"
+                   "CONTENT-TYPE: text/xml\r\n"
+                   "DATE: %s\r\n"
+                   "LAST-MODIFIED: Sat, 01 Jan 2000 00:01:15 GMT\r\n"
+                   "SERVER: Unspecified, UPnP/1.0, Unspecified\r\n"
+                   "X-User-Agent: redsonic\r\n"
+                   "CONNECTION: close\r\n"
+                   "\r\n"
+                   "%s" % (len(data), date_str, data))
+        dbg(message)
+        socket.send(message)
+
+    def handle_request(self, data, sender, socket, client_address):
+        tokens = data.split()
+        if len(tokens) < 3 or tokens[2] != 'HTTP/1.1':
+            dbg("Unknown request %s\n" % data)
+            return
+        requestdata = tokens[1].split('/')
+        if tokens[0] == 'GET':
+            if requestdata[1] == 'description.xml':
+                dbg("Responding to description.xml for %s" % self.name)
+                xml = HUE_SETUP_XML % {'host' : self.ip_address, 'port' : self.port}
+                self.send(socket, xml)
+            elif len(requestdata) == 4 and requestdata[3] == 'lights':
+                data = json.dumps(self.lights)
+                self.send(socket, data)
+            elif len(requestdata) >= 5 and requestdata[3] == 'lights':
+                data = json.dumps(self.lights[requestdata[4]])
+                self.send(socket, data)
+        elif tokens[0] == 'PUT':
+            if len(requestdata) >= 5 and requestdata[3] == 'lights':
+                light = requestdata[4]
+                submission = data.split('\n')[6]
+                command = json.loads(submission)
+                responses = []
+                for setting in command.keys():
+                    value = command[setting]
+                    private = self.privates[light]
+                    self.lights[light]['state'][setting] = value
+                    dbg ("Set %s to %s\n" % (setting, value))
+                    if setting == "on":
+                        if value == True:
+                            self.action_handler.on(private,client_address[0])
+                        elif value == False:
+                            self.action_handler.off(private,client_address[0])
+                    elif setting == "bri":
+                        self.action_handler.dim(private,client_address[0],value)
+                    apistring = "/lights/%s/state/%s" % (light, setting)
+                    responses.append({"success":{apistring : command[setting]}})
+                self.send(socket, json.dumps(responses))
+        else:
+            dbg("Unknown request: %s" % data)
+
+    def on(self):
+        return False
+
+    def off(self):
+        return True
+
 class fauxmo(upnp_device):
     @staticmethod
     def make_uuid(name):
