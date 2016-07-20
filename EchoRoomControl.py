@@ -31,7 +31,7 @@ triggers={"fargo":[
             #{"trig":{"pong desk":52100},"on":"http://192.168.2.135/load.cmd?index=22","off":"http://192.168.2.135/load.cmd?index=0"},
             {"trig":{"clock":52150},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
         ],"pong":[
-            {"trig":{"corner pong":52110},"ip":"192.168.2.138"},
+            {"trig":{"corner":52110},"ip":"192.168.2.138"},
         ]
     }
 
@@ -45,7 +45,7 @@ class pong_handler(debounce_handler_hue):
     def initialize(self,triggers,ip,responder,poller):
         self.destip=ip
         for trig, port in triggers.items():
-            fauxmo.fauxhue(trig,u,p,None,port,self).add_bulb("pong one")
+            fauxmo.fauxhue(trig,u,p,None,port,self).add_bulb("pocket")
     def act(self,bulb,client_address,state):
         print "hue handler for bulb ",bulb," from client ",client_address," set to ",state
         if (state is True):
@@ -55,7 +55,7 @@ class pong_handler(debounce_handler_hue):
             #code=resp.getcode()
             #resp.read()
             #if (code==200):
-                return True
+            return True
             #else:
             #    return False
         elif (state is False):
@@ -65,7 +65,7 @@ class pong_handler(debounce_handler_hue):
             #code=resp.getcode()
             #resp.read()
             #if (code==200):
-                return True
+            return True
             #else:
             #    return False
         else:
@@ -75,7 +75,7 @@ class pong_handler(debounce_handler_hue):
             #resp=urllib2.urlopen("http://"+self.destip+"/setScene.cmd?scene="+str(val))
             #resp.read()
             #if (code==200):
-                return True
+            return True
             #else:
             #    return False
 class generic_handler(debounce_handler):
