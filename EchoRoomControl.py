@@ -31,7 +31,7 @@ triggers={"fargo":[
             #{"trig":{"pong desk":52100},"on":"http://192.168.2.135/load.cmd?index=22","off":"http://192.168.2.135/load.cmd?index=0"},
             {"trig":{"clock":52150},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
         ],"pong":[
-            {"trig":{"corner":52110},"ip":"192.168.2.138"},
+            {"trig":{"corner lights":52110},"ip":"192.168.2.138"},
         ]
     }
 
