@@ -65,6 +65,7 @@ class debounce_handler_hue(object):
            one Echo overhearing a command meant for another one.
         """
         if (time.time() - self.lastEcho) < self.DEBOUNCE_SECONDS:
+            print "debounced"
             return True
 
         self.lastEcho = time.time()
