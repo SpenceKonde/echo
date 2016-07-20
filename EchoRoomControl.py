@@ -31,7 +31,7 @@ triggers={"fargo":[
             #{"trig":{"pong desk":52100},"on":"http://192.168.2.135/load.cmd?index=22","off":"http://192.168.2.135/load.cmd?index=0"},
             {"trig":{"clock":52150},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
         ],"pong":[
-            {"trig":{"pong wall":52110},"ip":"192.168.2.138"},
+            {"trig":{"corner pong":52110},"ip":"192.168.2.138"},
         ]
     }
 
@@ -49,25 +49,35 @@ class pong_handler(debounce_handler_hue):
     def act(self,bulb,client_address,state):
         print "hue handler for bulb ",bulb," from client ",client_address," set to ",state
         if (state is True):
-            resp=urllib2.urlopen("http://"+self.destip+"/on.cmd")
-            code=resp.getcode()
-            resp.read()
-            if (code==200):
+            dbg("true")
+            dbg("http://"+self.destip+"/on.cmd")
+            #resp=urllib2.urlopen("http://"+self.destip+"/on.cmd")
+            #code=resp.getcode()
+            #resp.read()
+            #if (code==200):
                 return True
-            else:
-                return False
+            #else:
+            #    return False
         elif (state is False):
-            resp=urllib2.urlopen("http://"+self.destip+"/off.cmd")
-            code=resp.getcode()
-            resp.read()
-            if (code==200):
+            dbg("false")
+            dbg("http://"+self.destip+"/off.cmd")
+            #resp=urllib2.urlopen("http://"+self.destip+"/off.cmd")
+            #code=resp.getcode()
+            #resp.read()
+            #if (code==200):
                 return True
-            else:
-                return False
+            #else:
+            #    return False
         else:
             val=values[state]
-            dbg(values)
-            resp=urllib2.urlopen("http://"+self.destip+"/setScene.cmd?scene="+str(val))
+            dbg(val)
+            dbg("http://"+self.destip+"/setScene.cmd?scene="+str(val))
+            #resp=urllib2.urlopen("http://"+self.destip+"/setScene.cmd?scene="+str(val))
+            #resp.read()
+            #if (code==200):
+                return True
+            #else:
+            #    return False
 class generic_handler(debounce_handler):
     def initialize(self,triggers,on,off,responder,poller):
         self.onurl=on
