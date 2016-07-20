@@ -49,8 +49,8 @@ class pong_handler(debounce_handler_hue):
     def act(self,bulb,client_address,state):
         print "hue handler for bulb ",bulb," from client ",client_address," set to ",state
         if (state is True):
-            dbg("true")
-            dbg("http://"+self.destip+"/on.cmd")
+            print "true"
+            print "http://",self.destip,"/on.cmd"
             #resp=urllib2.urlopen("http://"+self.destip+"/on.cmd")
             #code=resp.getcode()
             #resp.read()
@@ -59,8 +59,8 @@ class pong_handler(debounce_handler_hue):
             #else:
             #    return False
         elif (state is False):
-            dbg("false")
-            dbg("http://"+self.destip+"/off.cmd")
+            print "false"
+            print "http://",self.destip,"/off.cmd"
             #resp=urllib2.urlopen("http://"+self.destip+"/off.cmd")
             #code=resp.getcode()
             #resp.read()
@@ -70,8 +70,8 @@ class pong_handler(debounce_handler_hue):
             #    return False
         else:
             val=values[state]
-            dbg(val)
-            dbg("http://"+self.destip+"/setScene.cmd?scene="+str(val))
+            print val
+            print "http://",self.destip,"/setScene.cmd?scene=".str(val)
             #resp=urllib2.urlopen("http://"+self.destip+"/setScene.cmd?scene="+str(val))
             #resp.read()
             #if (code==200):
