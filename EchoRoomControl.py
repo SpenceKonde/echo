@@ -71,7 +71,7 @@ class pong_handler(debounce_handler_hue):
         else:
             val=values[state]
             print val
-            print "http://",self.destip,"/setScene.cmd?scene=".str(val)
+            print "http://",self.destip,"/setScene.cmd?scene=",str(val)
             #resp=urllib2.urlopen("http://"+self.destip+"/setScene.cmd?scene="+str(val))
             #resp.read()
             #if (code==200):
