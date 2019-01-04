@@ -22,13 +22,13 @@ fargourl="http://192.168.2.14/api/relay/"
 
 triggers={"fargo":[
             {"trig":{"colored": 52000},"relay":0},
-            {"trig":{"white": 52010},"relay":1},
+            {"trig":{"white light": 52010},"relay":1},
             {"trig":{"wizard": 52020},"relay":2},
             {"trig":{"tentacle": 52030},"relay":3},
             {"trig":{"desk": 52040},"relay":4},
             {"trig":{"air filter": 52050},"relay":5}
         ],"generic":[
-            {"trig":{"pong":52100},"on":"http://192.168.2.135/load.cmd?index=1","off":"http://192.168.2.135/load.cmd?index=0"},
+            {"trig":{"pong":52100},"on":"http://192.168.2.21/load.cmd?index=1","off":"http://192.168.2.21/load.cmd?index=0"},
             #{"trig":{"clock":52150},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
         ],"pong":[
             #{"trig":{"corner lights":52110},"ip":"192.168.2.138"},
