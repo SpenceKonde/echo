@@ -32,7 +32,8 @@ triggers={"fargo":[
             #{"trig":{"pong":52200},"on":"http://192.168.2.17/send4.cmd?message=1E40FF00","off":"http://192.168.2.17/send4.cmd?message=1E400000"},
             {"trig":{"stairs":52201},"on":"http://192.168.2.17/send4.cmd?message=1E40FF01","off":"http://192.168.2.17/send4.cmd?message=1E400001"},
             {"trig":{"salt":52202},"on":"http://192.168.2.17/send4.cmd?message=1E40FF00","off":"http://192.168.2.17/send4.cmd?message=1E400000"},
-            {"trig":{"exit":52203},"on":"http://192.168.2.17/send4.cmd?message=1E41FF01","off":"http://192.168.2.17/send4.cmd?message=1E41FF01"},
+            {"trig":{"exit":52203},"on":"http://192.168.2.17/send4.cmd?message=1E41FF01","off":"http://192.168.2.17/send4.cmd?message=1E410001"},
+            {"trig":{"dab rig":52204},"on":"http://192.168.2.17/send4.cmd?message=1E41FF02","off":"http://192.168.2.17/send4.cmd?message=1E40002"},
             #{"trig":{"clock":52150},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
         ],"pong":[
             #{"trig":{"corner lights":52110},"ip":"192.168.2.138"},
