@@ -475,8 +475,8 @@ class upnp_broadcast_responder(object):
     def do_read(self, fileno):
         data, sender = self.recvfrom(1024)
         if data:
-	    if data.find('M-SEARCH') == 0:
-		dbg(data)
+            if data.find('M-SEARCH') == 0:
+                dbg(data)
             if data.find('M-SEARCH') == 0 and data.find('upnp:rootdevice') != -1:
                 for device in self.devices:
                     if device.get_protocol() == "wemo":
