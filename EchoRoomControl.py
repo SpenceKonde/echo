@@ -34,7 +34,7 @@ triggers={"fargo":[
             {"trig":{"salt":52202},"on":"http://192.168.2.17/send4.cmd?message=1E40FF00","off":"http://192.168.2.17/send4.cmd?message=1E400000"},
             {"trig":{"exit":52203},"on":"http://192.168.2.17/send4.cmd?message=1E41FF01","off":"http://192.168.2.17/send4.cmd?message=1E410001"},
             {"trig":{"dab rig":52204},"on":"http://192.168.2.17/send4.cmd?message=1E40FF02","off":"http://192.168.2.17/send4.cmd?message=1E400002"},
-            {"trig":{"cans":52204},"on":"http://192.168.2.17/send8.cmd?message=2858000000FFFF","off":"http://192.168.2.17/send8.cmd?message=28580000000000"},
+            {"trig":{"cans":52300},"on":"http://192.168.2.17/send8.cmd?message=2858000000FFFF","off":"http://192.168.2.17/send8.cmd?message=28580000000000"},
             #{"trig":{"clock":52150},"on":"http://192.168.2.16/code.run?code=nixs=1;uplcd();","off":"http://192.168.2.16/code.run?code=nixs=0;uplcd();"}
         ],"pong":[
             #{"trig":{"corner lights":52110},"ip":"192.168.2.138"},
