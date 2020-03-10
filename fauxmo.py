@@ -476,7 +476,7 @@ class upnp_broadcast_responder(object):
         data, sender = self.recvfrom(1024)
         if data:
             if data.find('M-SEARCH') == 0:
-                dbg(data)
+                #dbg(data)
             if data.find('M-SEARCH') == 0 and data.find('urn:Belkin:device:**') != -1:
                 for device in self.devices:
                     if device.get_protocol() == "wemo":
